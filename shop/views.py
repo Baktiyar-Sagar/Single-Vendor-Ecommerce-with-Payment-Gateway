@@ -19,6 +19,7 @@ def login_view(request):
             messages.error(request, "Invalid username or password")
     return render(request, '')
 
+
 def register_view(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
@@ -34,6 +35,7 @@ def register_view(request):
     return render(request, '', {'form':form})
 
 
+
 def logout_view(request):
     logout(request)
     return render('')
@@ -47,6 +49,7 @@ def home(request):
         'categories':categories,
     }
     return render(request, '', context)
+
 
 def product_list(request, category_slug = None):
     category = None
@@ -82,6 +85,16 @@ def product_list(request, category_slug = None):
             Q(description__icontains = query)|
             Q(category_name__icontains = query)
         )
+        context = {
+            'products':products,
+            'category':category,
+            'categories':categories,
+            'min_price':min_price,
+            'max_price':max_price,
+        }
+    return render(request, '', context)
+
+
 
 def products_details(request, slug):
     product = get_object_or_404(models.Product, slug = slug , available = True)
@@ -105,6 +118,8 @@ def products_details(request, slug):
     }
 
     return render(request, '', context)
+
+
 
 def rate_product(request, product_id):
     product = get_object_or_404(models.Product, id= product_id)

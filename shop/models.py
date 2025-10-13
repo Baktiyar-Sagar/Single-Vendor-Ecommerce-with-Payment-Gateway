@@ -8,7 +8,7 @@ from django.core.validators import MinValueValidator , MaxValueValidator
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField()
+    description = models.TextField(blank= True)
 
     class Meta:
         verbose_name_plural = 'Categories'
@@ -45,6 +45,9 @@ class Rating(models.Model):
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('product', 'user')
+
     def __str__(self):
         return f"{self.user.username} - {self.product.name} - {self.rating}"
 
@@ -54,8 +57,14 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"Cart for :{self.user.username}"
+    
     def get_total_price(self):
         return sum(item.get_cost() for item in self.items.all())
+    
+    def get_total_item(self):
+        return sum(item.quantity for item in self.items.all())
     
   
 class CartItem(models.Model):
@@ -94,6 +103,9 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=10, choices=STATUS , default= 'pending')
 
+    def get_total_cost(self):
+        sum(item.get_cost() for item in self.order_items.all()) 
+
     def __str__(self):
         return f"Order #{self.id}"
     
@@ -105,3 +117,6 @@ class OrderItem(models.Model):
 
     def get_cost(self):
         return self.quantity*self.product.price
+    
+    def __str__(self):
+        return f"Quantity: {self.quantity} , Product: {self.product.name}"

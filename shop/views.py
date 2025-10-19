@@ -26,7 +26,7 @@ def register_view(request):
 
         if form.is_valid():
             user = form.save()
-            login(request, login)
+            login(request, user)
             messages.success(request, "Registration is successful !" )
             return redirect('')
     else: 
@@ -151,3 +151,151 @@ def rate_product(request, product_id):
 
     return render(request, '', {'form':form,'product':product})
 
+
+
+def cart_add(request, product_id):
+    product = get_object_or_404(models.Product, id= product_id)
+    
+    # Checking User have any existing cart
+    try:
+        # if the user already have a cart , then get the cart 
+        cart = models.Cart.objects.get(user = request.user)
+    except models.Cart.DoesNotExist:
+        # if the user doesn't have any cart, then create new one for that user
+        cart = models.Cart.objects.create(user = request.user)
+
+    # Add an item in the cart
+    try: 
+        # the item is already exist in the cart -> increase the quantity
+        cart_item = models.CartItem.objects.get(cart = cart, product = product)
+        cart_item.quantity += 1
+        cart_item.save()
+    except models.CartItem.DoesNotExist:
+        # the item didn't exist in the cart -> create or add the item to the cart, and make initial quantity one
+        models.CartItem.objects.create(product= product, cart= cart, quantity= 1)
+    
+    messages.success(request, f"{product.name} has been added to your cart!")
+    return render(request, '')
+
+
+
+# cart update : cart item increase or decrease
+def cart_update(request, product_id):
+    cart = get_object_or_404(models.Cart, user= request.user)
+    product = get_object_or_404(models.Product, id= product_id)
+    cart_item = get_object_or_404(models.CartItem,cart=cart, product= product)
+    quantity = int(request.POST.get('quantity', 1))
+
+    if quantity <= 0:
+        cart_item.delete()
+        messages.success(request,f"{product.name} has been deleted from your cart!")
+    else:
+        cart_item.quantity = quantity
+        cart_item.save()
+        messages.success(request,"Cart updated successfully!")
+
+
+
+def cart_remove(request, product_id):
+    cart = get_object_or_404(models.Cart, user= request.user)
+    product = get_object_or_404(models.Product, id= product_id)
+    cart_item= get_object_or_404(models.CartItem, cart=cart, product=product)
+    cart_item.delete()
+    messages.success(request,f"{product.name} has been deleted from your cart!")
+    return redirect('')
+
+
+
+def cart_details(request):
+    try:
+        # user has a cart
+        cart = models.Cart.objects.get(user = request.user)
+    except models.Cart.DoesNotExist:
+        # user has no cart
+        cart = models.Cart.objects.create(user = request.user)
+
+    return render(request, '', {'cart':cart})
+
+
+def checkout(request):
+    try:
+        cart = models.Cart.objects.get(user= request.user)
+        if not cart.items.exists():
+            messages.warning(request, 'Your cart is empty')
+            return redirect('')
+    except models.Cart.DoesNotExist:
+        messages.warning(request, 'Your cart is empty')
+        return redirect('')
+
+    # After clicking checkout btn, have to full up checkout form (in this case cart is not empty)
+    if request.method == 'POST':
+        form = CheckOutForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit= False)
+            order.user = request.user
+            order.save()
+
+            # product -> cart Item -> order item 
+            for item in cart.items.all():
+                models.OrderItem.objects.create(
+                    order = order,
+                    product = item.product,
+                    price = item.price,
+                    quantity = item.quantity,
+                )
+            # After oder done, cart will be deleted (i.e. the previous items added to the cart, will be gone from the cart after order)
+            cart.items.all().delete()
+            request.session['order_id']= order.id
+            return redirect('')
+    else:
+        form = CheckOutForm()
+    
+    return render(request, '', {
+        'cart': cart,
+        'form': form,
+    })
+
+# Payment process
+def payment_process():
+    pass
+
+
+
+# Payment Success
+def payment_success(request, order_id):
+    order = get_object_or_404(models.Order, id= order_id, user= request.user)
+    
+    order.paid = True
+    order.status = 'processing'
+    order.transaction_id = order.id
+    order.save()
+
+    order_items = order.order_items.all()
+    for item in order_items:
+        product = item.product
+        product.stock -= item.quantity 
+
+        if product.stock < 0:
+            product.stock = 0
+        product.save()
+
+    messages.success(request,"Payment Successful" )    
+    return render(request, '', {'order': order})
+
+
+
+# Payment Fail
+def payment_fail(request, order_id):
+    order = get_object_or_404(models.Order, id= order_id, user= request.user)
+    order.status = 'canceled'
+    order.save()
+    return redirect('')
+
+
+
+# Payment Cancel
+def payment_cancel(request, order_id):
+    order = get_object_or_404(models.Order, id= order_id, user= request.user)
+    order.status = 'canceled'
+    order.save()
+    return redirect('')

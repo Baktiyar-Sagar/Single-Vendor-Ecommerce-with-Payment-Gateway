@@ -104,7 +104,7 @@ class Order(models.Model):
     status = models.CharField(max_length=10, choices=STATUS , default= 'pending')
 
     def get_total_cost(self):
-        sum(item.get_cost() for item in self.order_items.all()) 
+        return sum(item.get_cost() for item in self.order_items.all()) 
 
     def __str__(self):
         return f"Order #{self.id}"

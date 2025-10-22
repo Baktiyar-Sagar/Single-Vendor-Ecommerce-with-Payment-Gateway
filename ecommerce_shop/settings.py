@@ -69,6 +69,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 # `allauth` needs this from django
                 'django.template.context_processors.request',
+                'shop.context_processors.cart_items_count',
             ],
         },
     },
@@ -142,3 +143,19 @@ LOGOUT_REDIRECT_URL = '/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# SSL Commerz set up
+SSLCOMMERZ_STORE_ID = ' '
+SSLCOMMERZ_STORE_PASSWORD = ''
+SSLCOMMERZ_PAYMENT_URL = ''
+SSLCOMMERZ_VALIDATION_URL = ''
+
+# Email setup
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = '@gmail.com'
+EMAIL_HOST_PASSWORD = '' #past the key or password app here
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'default from email'

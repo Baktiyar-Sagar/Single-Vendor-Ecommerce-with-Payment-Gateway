@@ -4,6 +4,7 @@ from django.contrib import messages
 from .forms import RegistrationForm, RatingForm, CheckOutForm
 from . import models
 from django.db.models import Q, Max, Min, Avg
+from .sslcommerz import generate_sslcommerz_payment
 
 # Create your views here.
 
@@ -256,8 +257,20 @@ def checkout(request):
     })
 
 # Payment process
-def payment_process():
-    pass
+def payment_process(request):
+    order_id = request.session.get('order_id')
+    if not order_id:
+        return redirect('')
+    
+    order = get_object_or_404(models.Order, id= order_id)
+    payment_data = generate_sslcommerz_payment(request, order)
+
+    if payment_data['status'] == 'SUCCESS':
+        return redirect('')
+    else:
+        messages.error(request, 'Payment gateway error')
+        return redirect('')
+    
 
 
 

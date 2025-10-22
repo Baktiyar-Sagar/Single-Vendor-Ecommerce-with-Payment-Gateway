@@ -312,3 +312,46 @@ def payment_cancel(request, order_id):
     order.status = 'canceled'
     order.save()
     return redirect('')
+
+def profile(request):
+    tab = request.GET.get('tab')
+    orders = models.Order.objects.filter(user=request.user).order_by('-created')
+    completed_orders = orders. filter(status = 'delivered').count()
+    total_spent = sum(order.get_total_cost for order in orders if order.paid)
+    order_history_active = (tab == 'orders')
+
+    return render(request, '', {
+        'user' : request.user,
+        'orders' : orders,
+        'order_history_active' : order_history_active,
+        'completed_orders' : completed_orders,
+        'total_spent' : total_spent})
+
+
+def rate_product(request, product_id) :
+    product = get_object_or_404(models.Product, id=product_id)
+    ordered_items = models.OrderItem.objects.filter(order_user = request.user,order_paid = True,product= product)
+
+    if not ordered_items.exists():
+        messages.warning(request, 'You can only rate products you have purchased')
+        return redirect('')
+    try:
+        rating = models.Rating.objects.get(product=product, user=request.user)
+    except models.Rating.DoesNotExist:
+        rating = None
+
+    if request.method == 'POST':
+        form = RatingForm(request.POST, instance = rating)
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.product = product
+            rating.user = request.user
+            rating. save()
+            return redirect('')
+    else:
+        form = RatingForm(instance=rating)
+    
+    return render(request, '', {
+        'form': form,
+        'product': product,
+    })

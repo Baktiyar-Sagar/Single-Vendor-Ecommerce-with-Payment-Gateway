@@ -66,10 +66,10 @@ def product_list(request, category_slug = None):
     max_price = products.aggregate(Max('price'))['price__max'] # For showing the max price in the html (filtering part)
 
     if request.GET.get('min_price'):
-        products = products.filter(price__gte= request.GET('min_price')) # gte = Greater then equal
+        products = products.filter(price__gte= request.GET.get('min_price')) # gte = Greater then equal
 
     if request.GET.get('max_price'):
-        products = products.filter(price__lte= request.GET('max_price')) # lte = less then equal
+        products = products.filter(price__lte= request.GET.get('max_price')) # lte = less then equal
 
     if request.GET.get('rating'):
         products = products.annotate(avg_rating = Avg('ratings__rating')).filter(avg_rating = request.GET.get('rating'))
@@ -87,7 +87,7 @@ def product_list(request, category_slug = None):
             Q(description__icontains = query)|
             Q(category_name__icontains = query)
         )
-        
+
     context = {
         'products':products,
         'category':category,
@@ -244,7 +244,7 @@ def checkout(request):
                 models.OrderItem.objects.create(
                     order = order,
                     product = item.product,
-                    price = item.price,
+                    price = item.product.price,
                     quantity = item.quantity,
                 )
             # After oder done, cart will be deleted (i.e. the previous items added to the cart, will be gone from the cart after order)
@@ -329,7 +329,7 @@ def payment_cancel(request, order_id):
 @login_required
 def profile(request):
     tab = request.GET.get('tab')
-    orders = models.Order.objects.filter(user=request.user).order_by('-created')
+    orders = models.Order.objects.filter(user=request.user).order_by('-created_at')
     completed_orders = orders. filter(status = 'delivered').count()
     total_spent = sum(order.get_total_cost for order in orders if order.paid)
     order_history_active = (tab == 'orders')

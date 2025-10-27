@@ -112,6 +112,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend', # Needed for Django admin login
+    'allauth.account.auth_backends.AuthenticationBackend', # allauth specific
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -159,7 +164,7 @@ SSLCOMMERZ_VALIDATION_URL = env('SSLCOMMERZ_VALIDATION_URL')
 # email setup
 EMAIL_BACKEND = env('EMAIL_BACKEND')
 EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = 'baktiyar.sagar@gmail.com'
+EMAIL_HOST_PASSWORD = 'ukjkirfnuvqzvmmz'
 EMAIL_PORT = env('EMAIL_PORT')
 EMAIL_USE_TLS = env('EMAIL_USE_TLS')

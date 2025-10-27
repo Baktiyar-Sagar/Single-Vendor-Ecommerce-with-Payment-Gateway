@@ -40,7 +40,7 @@ def register_view(request):
 
 def logout_view(request):
     logout(request)
-    return render('login')
+    return redirect('login')
 
 def home(request):
     featured_products = models.Product.objects.filter(available=True).order_by('-created_at')[:8]
@@ -85,7 +85,7 @@ def product_list(request, category_slug = None):
         products = products.filter(
             Q(name__icontains = query)|
             Q(description__icontains = query)|
-            Q(category_name__icontains = query)
+            Q(category__name__icontains = query)
         )
 
     context = {
@@ -178,7 +178,7 @@ def cart_add(request, product_id):
         models.CartItem.objects.create(product= product, cart= cart, quantity= 1)
     
     messages.success(request, f"{product.name} has been added to your cart!")
-    return render(request, 'product_detail', slug=product.slug)
+    return redirect('product_detail', slug=product.slug)
 
 
 
@@ -197,7 +197,8 @@ def cart_update(request, product_id):
         cart_item.quantity = quantity
         cart_item.save()
         messages.success(request,"Cart updated successfully!")
-
+        
+    return redirect('cart_detail')
 
 @login_required
 def cart_remove(request, product_id):

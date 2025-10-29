@@ -32,7 +32,7 @@ def generate_sslcommerz_payment(request,order):
 
 def send_order_confirmation_email(order):
     subject = f'Order Confirmation - Order #{order.id}'
-    message = render_to_string('html') # html code ---convert--- > string 
+    message = render_to_string('shop/email/order_confirmation.html',{'order':order}) # html code ---convert--- > string 
     to = order.email
     send_email = EmailMultiAlternatives(subject, '', to=[to])
     send_email.attach_alternative(message, 'text/html')

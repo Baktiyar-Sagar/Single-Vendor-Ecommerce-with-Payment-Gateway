@@ -16,7 +16,10 @@ def login_view(request):
         user = authenticate(request, username= username, password = password)
         if user is not None:
             login(request, user)
-            redirect('profile')
+            print('Login Successful-------')
+            if request.GET.get('next'):
+                return redirect(request.GET.get('next'))          
+            return redirect('profile')
         else:
             messages.error(request, "Invalid username or password")
     return render(request, 'shop/login.html')
@@ -221,7 +224,7 @@ def cart_detail(request):
 
     return render(request, 'shop/cart.html', {'cart' : cart})
 
-
+@login_required
 def checkout(request):
     try:
         cart = models.Cart.objects.get(user= request.user)
@@ -269,6 +272,10 @@ def payment_process(request):
         return redirect('home')
     
     order = get_object_or_404(models.Order, id= order_id)
+
+    # Very Important: Save user_id in session for later use
+    request.session['user_id'] = request.user.id
+
     payment_data = generate_sslcommerz_payment(request, order)
 
     if payment_data['status'] == 'SUCCESS':
@@ -282,10 +289,15 @@ def payment_process(request):
 
 # Payment Success
 @csrf_exempt
-@login_required
 def payment_success(request, order_id):
-    order = get_object_or_404(models.Order, id= order_id, user= request.user)
-    
+    # order = get_object_or_404(models.Order, id= order_id, user= request.user)
+
+    order = get_object_or_404(models.Order, id=order_id)
+    # Very Important: Restore user from session
+    user_id = request.session.get('user_id')
+    if user_id:
+        order.user_id = user_id
+
     order.paid = True
     order.status = 'processing'
     order.transaction_id = order.id
@@ -332,7 +344,7 @@ def profile(request):
     tab = request.GET.get('tab')
     orders = models.Order.objects.filter(user=request.user).order_by('-created_at')
     completed_orders = orders. filter(status = 'delivered').count()
-    total_spent = sum(order.get_total_cost for order in orders if order.paid)
+    total_spent = sum(order.get_total_cost() for order in orders if order.paid)
     order_history_active = (tab == 'orders')
 
     return render(request, 'shop/profile.html', {

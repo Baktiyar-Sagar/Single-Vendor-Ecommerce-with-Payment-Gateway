@@ -14,6 +14,12 @@ def generate_sslcommerz_payment(request,order):
         'success_url': request.build_absolute_uri(f'/payment/success/{order.id}/'),
         'fail_url': request.build_absolute_uri(f'/payment/fail/{order.id}/'),
         'cancel_url': request.build_absolute_uri(f'/payment/cancel/{order.id}/'),
+
+        # Option 1: session store/ cookie handle
+        # 'success_url': request.build_absolute_uri(f'/payment/success/{order.id}/{request.user.id}/'),
+        # 'fail_url': request.build_absolute_uri(f'/payment/fail/{order.id}/{request.user.id}/'),
+        # 'cancel_url': request.build_absolute_uri(f'/payment/cancel/{order.id}/{request.user.id}/'),
+
         'cus_name': f"{order.first_name} {order.last_name}",
         'cus_email': order.email,
         'cus_add1': order.address,

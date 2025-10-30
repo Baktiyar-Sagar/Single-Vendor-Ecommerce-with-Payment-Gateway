@@ -16,7 +16,6 @@ def login_view(request):
         user = authenticate(request, username= username, password = password)
         if user is not None:
             login(request, user)
-            print('Login Successful-------')
             if request.GET.get('next'):
                 return redirect(request.GET.get('next'))          
             return redirect('profile')
@@ -273,8 +272,8 @@ def payment_process(request):
     
     order = get_object_or_404(models.Order, id= order_id)
 
-    # Very Important: Save user_id in session for later use
-    request.session['user_id'] = request.user.id
+    # # Very Important: Save user_id in session for later use
+    # request.session['user_id'] = request.user.id
 
     payment_data = generate_sslcommerz_payment(request, order)
 
@@ -289,14 +288,16 @@ def payment_process(request):
 
 # Payment Success
 @csrf_exempt
+@login_required
 def payment_success(request, order_id):
-    # order = get_object_or_404(models.Order, id= order_id, user= request.user)
+    order = get_object_or_404(models.Order, id= order_id, user= request.user)
 
-    order = get_object_or_404(models.Order, id=order_id)
-    # Very Important: Restore user from session
-    user_id = request.session.get('user_id')
-    if user_id:
-        order.user_id = user_id
+    # order = get_object_or_404(models.Order, id=order_id)
+    # # Very Important: Restore user from session
+    # user_id = request.session.get('user_id')
+    # if user_id:
+    #     # order.user_id = user_id
+    #     order.user = models.User.objects.get(id=user_id) 
 
     order.paid = True
     order.status = 'processing'

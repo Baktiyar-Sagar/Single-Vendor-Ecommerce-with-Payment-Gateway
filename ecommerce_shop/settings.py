@@ -9,12 +9,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import environ
 from pathlib import Path
 
-
-env = environ.Env()
-environ.Env.read_env()
+# For environment variable:
+from dotenv import load_dotenv
+import os 
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +58,10 @@ MIDDLEWARE = [
     # Add the account middleware:
     "allauth.account.middleware.AccountMiddleware",
 ]
+
+# 2nd Option for cookie handle: storing cookies in the site and securing the cookie: For (SSL Api site to -> my website )
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True 
 
 ROOT_URLCONF = 'ecommerce_shop.urls'
 
@@ -154,17 +158,17 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+# For accessing environment variable:
 # SSL Commerz setup
-SSLCOMMERZ_STORE_ID = env('SSLCOMMERZ_STORE_ID')
-SSLCOMMERZ_STORE_PASSWORD = env('SSLCOMMERZ_STORE_PASSWORD')
-SSLCOMMERZ_PAYMENT_URL = env('SSLCOMMERZ_PAYMENT_URL')
-SSLCOMMERZ_VALIDATION_URL = env('SSLCOMMERZ_VALIDATION_URL')
+SSLCOMMERZ_STORE_ID = os.getenv('SSLCOMMERZ_STORE_ID')
+SSLCOMMERZ_STORE_PASSWORD = os.getenv('SSLCOMMERZ_STORE_PASSWORD')
+SSLCOMMERZ_PAYMENT_URL = os.getenv('SSLCOMMERZ_PAYMENT_URL')
+SSLCOMMERZ_VALIDATION_URL = os.getenv('SSLCOMMERZ_VALIDATION_URL')
 
 # email setup
-EMAIL_BACKEND = env('EMAIL_BACKEND')
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-EMAIL_PORT = env('EMAIL_PORT')
-EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
